@@ -1,3 +1,6 @@
 [submodule "xbyak"]
 	path = xbyak
 	url = https://github.com/herumi/xbyak
+[submodule "tlsf"]
+	path = tlsf
+	url = https://github.com/mattconte/tlsf
