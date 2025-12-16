@@ -23,8 +23,8 @@ inline void* alloc_rwx(size_t size) {
 
 
 
-inline Vec2 idx_to_pos(uint64 idx) {
-    return Vec2(idx / N_ROWS_Y, idx % N_ROWS_Y);
+inline code_pos_t idx_to_pos(uint64 idx, Dir::DirType d) {
+    return code_pos_t(idx / N_ROWS, idx % N_ROWS, d);
 }
 // inline void assert_pos(code_pos_t p) {
 //     assert(p.first < 4);
@@ -37,50 +37,50 @@ inline code_pos_t offset_to_codepos(uint64 offset) {
 
     assert(offset <= STUB_TABLE_SIZE);
     uint64 table_offset = offset / THUNK_ENTRY_SIZE;
-    DirType row_idx = (DirType)(table_offset / N_ROWS_XY);
+    Dir::DirType row_idx = (Dir::DirType)(table_offset / N_ROWS_COLS);
     
-    code_pos_t r(row_idx, idx_to_pos(table_offset % N_ROWS_XY));
+    code_pos_t r(idx_to_pos(table_offset % N_ROWS_COLS, row_idx));
 
     return r;
 
 }
 
 inline uint64 codepos_to_offset(const code_pos_t& code_pos) {
-    return (code_pos.first * N_ROWS_XY + code_pos.second.x * N_ROWS_Y + code_pos.second.y) * THUNK_ENTRY_SIZE;
+    return (code_pos.dir * N_ROWS_COLS + code_pos.x * N_COLS + code_pos.y) * THUNK_ENTRY_SIZE;
 }
 
 
 
 
 
-inline Vec2 vec_from_dir(DirType d) {
+inline code_pos_t vec_from_dir(Dir::DirType d) {
     switch (d)
     {
-    case DIR_UP:
-        return {0, -1};
-    case DIR_DOWN:
-        return {0, 1};
-    case DIR_LEFT:
-        return {-1, 0};
-    case DIR_RIGHT:
-        return {1, 0};
+    case Dir::UP:
+        return {0, -1, d};
+    case Dir::DOWN:
+        return {0, 1, d};
+    case Dir::LEFT:
+        return {-1, 0, d};
+    case Dir::RIGHT:
+        return {1, 0, d};
     
     default:
         throw std::runtime_error("Invalid direction");    
-        }
+    }
 }
 
-inline DirType dir_from_ascii(char c) {
+inline Dir::DirType dir_from_ascii(char c) {
     switch (c)
     {
     case '^':
-        return DIR_UP;
+        return Dir::UP;
     case 'v':
-        return DIR_DOWN;
+        return Dir::DOWN;
     case '<':
-        return DIR_LEFT;
+        return Dir::LEFT;
     case '>':
-        return DIR_RIGHT;
+        return Dir::RIGHT;
     
     default:
         throw std::runtime_error("Invalid direction");    
@@ -89,8 +89,8 @@ inline DirType dir_from_ascii(char c) {
 
 
 inline void print_mem() {
-    for(int y = 0; y < N_ROWS_Y; y++) {
-        for(int x = 0; x < N_ROWS_X; x++) {
+    for(int y = 0; y < N_ROWS; y++) {
+        for(int x = 0; x < N_COLS; x++) {
             std::cerr << G::static_memory[x][y];
         }
         std::cerr << std::endl;

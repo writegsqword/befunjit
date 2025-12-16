@@ -1,6 +1,5 @@
 #pragma once
 #include "typedefs.h"
-#include "globals.h"
 #include "vec.h"
 
 #include <vector>

@@ -1,11 +1,17 @@
 #pragma once
 
+#include "thunk.h"
 #include "typedefs.h"
 #include "externs.h"
+#include "vec.h"
+#include <vector>
 
 class G {
     public:
-    inline static byte static_memory[N_ROWS_X][N_ROWS_Y];
+    //actual globals
+    inline static byte static_memory[N_COLS][N_ROWS];
+    inline static CodeManager code_manager;
+    // not too sure what these are
     inline static uint64 p_extern_put = (uint64)&extern_put;
 
     inline static uint64 p_extern_getchar = (uint64)&extern_getchar;

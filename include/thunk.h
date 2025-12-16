@@ -2,16 +2,28 @@
 
 #include "typedefs.h"
 #include "compile.h"
+#include "vec.h"
 #include "snippets.h"
 #include <memory>
 #include <iostream>
+#include <set>
+#include <unordered_map>
+#include <vector>
 
-constexpr byte INS_CALL = 0xe8, INS_JUMP = 0xe9;
+/*
+a:  ff e0                   jmp    rax
+c:  ff d0                   call   rax
+*/
+constexpr uint16 INS_CALL = 0xd0ff, INS_JUMP = 0xe0ff;
 
 struct __attribute__((packed)) thunk_entry
 {
-    byte ins_prefix = INS_CALL;
-    uint32 addr = 0;
+
+    //please dont optimize out this field...
+    uint16 __movabs_rax_prefix = 0xb848;
+
+    uint64 addr = 0;
+    uint16 ins_prefix = INS_CALL;
     inline bool is_resolved()
     {
         return ins_prefix == INS_JUMP;
@@ -20,15 +32,13 @@ struct __attribute__((packed)) thunk_entry
     inline void init(uint64 stub_resolver_addr)
     {
         ins_prefix = INS_CALL;
-        // need to bet the offset is less than 32 bits(lol)
-        // if something went wrong its probably here
-        addr = (int64)stub_resolver_addr - reinterpret_cast<int64>(this) - sizeof(*this);
+        addr = stub_resolver_addr;
     }
 
     inline void resolve(uint64 target_addr)
     {
         ins_prefix = INS_JUMP;
-        addr = (int64)target_addr - reinterpret_cast<int64>(this) - sizeof(*this);
+        addr = target_addr;
     }
 
     thunk_entry(uint64 stub_resolver_addr)
@@ -40,14 +50,12 @@ struct __attribute__((packed)) thunk_entry
         ins_prefix = 0;
     }
 };
-static_assert(sizeof(thunk_entry) == 5);
-
-
+static_assert(sizeof(thunk_entry) == 0xc);
 
 
 struct __attribute__((packed)) stub_table
 {
-    thunk_entry entries[N_ROWS_TOT];
+    thunk_entry entries[N_ROWS_COLS_DIRS];
     // 3 dims
     // dim 0: row type(4)
     // dim 1: x(80)
@@ -71,15 +79,16 @@ struct __attribute__((packed)) stub_table
 } __attribute__((packed));
 
 // should only have one instance
-class ThunkManager
+class CodeManager
 {
 
+    // Set of functions(each code_pos_t uniquely identifies a function) that depends on the value at x,y
+    std::set<code_pos_t> code_depends[N_COLS][N_ROWS];
+    std::unordered_map<code_pos_t, code_pos_t> code_depends_reverse;
 public:
     std::unique_ptr<stub_table> st;
-
-    inline static ThunkManager *_instance;
-
-    ThunkManager();
+    
+    CodeManager();
     code_pos_t GetCodePos(uint64 address) const;
     inline uint64 GetBase() const
     {

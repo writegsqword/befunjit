@@ -26,18 +26,9 @@ tramp_asm* tasm;
 void trampoline_code() {
     byte buf[1024 * 4] = {0};
     ((void_fn_ptr)(tasm))();
-    
-
 }
-int main(int argc, char** argv) {
 
-    if(argc < 2) {
-        std::cerr << "No filename provided. Exiting...\n";
-        return -1;
-    };
-    std::string filename = argv[1];
-    std::fstream fin(filename);
-    
+void init_rand() {
     auto now = std::chrono::system_clock::now();
 
     // Convert the current time to time since epoch
@@ -49,6 +40,18 @@ int main(int argc, char** argv) {
               duration)
               .count();
     srand(milliseconds);
+}
+
+int main(int argc, char** argv) {
+
+    if(argc < 2) {
+        std::cerr << "No filename provided. Exiting...\n";
+        return -1;
+    };
+    std::string filename = argv[1];
+    std::fstream fin(filename);
+    
+    init_rand();
 
     std::vector<std::string> ins;
     // {
@@ -72,14 +75,14 @@ int main(int argc, char** argv) {
     }
 
     print_mem();
-    ThunkManager* mgr = new ThunkManager();
+    CodeManager* mgr = new CodeManager();
     std::cerr << "extern printint " << std::hex << G::p_extern_printint;
     std::cerr << "base@"  << std::hex << mgr->GetBase() << std::endl;
     std::cerr << "resolve callback@" << std::hex << &mgr->st.get()->f_dispatch << std::endl;
     tasm = (tramp_asm*)alloc_rwx(sizeof(tramp_asm));
     *tasm = tramp_asm();
     std::cerr << "tasm@ " << tasm << std::endl;
-    tasm->jt.addr = mgr->GetAddress(code_pos_t(DIR_RIGHT, Vec2(0,0)));
+    tasm->jt.addr = mgr->GetAddress(code_pos_t(0, 0, Dir::RIGHT));
     trampoline_code();
 
     

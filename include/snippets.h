@@ -7,6 +7,7 @@
 
 
 
+
 namespace instructions {
 
 
@@ -225,7 +226,7 @@ namespace instructions {
         __pop_call call;
         inline _pop_print_int() {
             
-            call.call.addr = G::p_extern_printint;
+            //call.call.addr = G::p_extern_printint;
         }
 
     };
@@ -233,7 +234,7 @@ namespace instructions {
     struct __attribute__((packed)) _pop_print_char {
         __pop_call call;
         inline _pop_print_char() {
-            call.call.addr = G::p_extern_printchar;
+            //call.call.addr = G::p_extern_printchar;
         }
     };
     struct __attribute__((packed)) __write_val_intern {
@@ -242,7 +243,7 @@ namespace instructions {
         byte __pop_a2 = __pop_rdx;
         __common_call call;
         inline __write_val_intern() {
-            call.addr = G::p_extern_write_val;
+            //call.addr = G::p_extern_write_val;
         }
     };
     struct __attribute__((packed)) _write_val {
@@ -275,7 +276,7 @@ namespace instructions {
         byte push_rsi = 0x56;
         byte ret = __ret;
         inline _jump_rand() {
-            push.call.addr = G::p_extern_rand;
+            //push.call.addr = G::p_extern_rand;
         }  
     };
 
@@ -283,14 +284,14 @@ namespace instructions {
     struct __attribute__((packed)) _push_get_int {
         __push_get_from_call push;
         inline _push_get_int() {
-            push.call.addr = G::p_extern_getint;
+            //push.call.addr = G::p_extern_getint;
         }  
     };
 
     struct __attribute__((packed)) _push_get_char {
         __push_get_from_call push;
         inline _push_get_char() {
-            push.call.addr = G::p_extern_getchar;
+            //push.call.addr = G::p_extern_getchar;
         }  
     };
     struct __attribute__((packed)) _read_val {
@@ -299,14 +300,14 @@ namespace instructions {
         __common_call call;
         byte push_rax = __push_rax;
         inline _read_val() {
-            call.addr = G::p_extern_read_val;
+            //call.addr = G::p_extern_read_val;
         }
     };
 
     struct __attribute__((packed)) _exit {
         __common_call call;
         inline _exit() {
-            call.addr = G::p_extern_exit;
+            //call.addr = G::p_extern_exit;
         }
     };
 
@@ -328,10 +329,11 @@ namespace instructions {
         instructions::__align_rsp align;
 
         byte call_rax[2] = {
-            0xff, 0xd0};
+            0xff, 0xd0
+        };
+        
         instructions::__restore_rsp restore;
-        byte push_rax = 0x50;
-        byte ret = 0xc3;
+        byte jmp_rax[2] = {0xff, 0xe0}; 
 
     };
 }

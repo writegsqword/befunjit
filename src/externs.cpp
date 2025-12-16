@@ -7,6 +7,8 @@
 #include <iostream>
 #include <cstdlib> 
 #include "thunk.h"
+#include "typedefs.h"
+#include "vec.h"
 
 void extern_put(uint64 x, uint64 y, uint64 v) {
 
@@ -41,36 +43,23 @@ uint64 extern_exit() {
 }
 
 uint64 extern_rand() {
-    
-    int res = rand() % 4;
+    int res = (rand() % 4) + Dir::UP;
     std::cerr << "rand res " << res << std::endl;
     return res;
 }
 uint64 extern_read_val(uint64 y, uint64 x) {
-    if(x >= N_ROWS_X || y >= N_ROWS_Y)
+    if(x >= N_COLS || y >= N_ROWS)
         return 0;
     return (uint64)G::static_memory[x][y];
 }
 
 
 void extern_write_val(uint64 y, uint64 x, uint64 v) {
-    if(x >= N_ROWS_X || y >= N_ROWS_Y)
+    if(x >= N_COLS || y >= N_ROWS)
         return;
     G::static_memory[x][y] = v;
+    
     //im sorry ok
-    for(int yi = 0; yi < N_ROWS_Y; yi++) {
-        Vec2 p(x, yi);
-        ThunkManager::_instance->InvalidatePos(code_pos_t(DIR_UP, p));
-        ThunkManager::_instance->InvalidatePos(code_pos_t(DIR_DOWN, p));
-        ThunkManager::_instance->InvalidatePos(code_pos_t(DIR_LEFT, p));
-        ThunkManager::_instance->InvalidatePos(code_pos_t(DIR_RIGHT, p));
-    }
-    for(int xi = 0; xi < N_ROWS_X; xi++) {
-        Vec2 p(xi, y);
-        ThunkManager::_instance->InvalidatePos(code_pos_t(DIR_UP, p));
-        ThunkManager::_instance->InvalidatePos(code_pos_t(DIR_DOWN, p));
-        ThunkManager::_instance->InvalidatePos(code_pos_t(DIR_LEFT, p));
-        ThunkManager::_instance->InvalidatePos(code_pos_t(DIR_RIGHT, p));
-    }
+    G::code_manager.InvalidatePos(code_pos_t(x, y, Dir::INVALID));
 
 }
