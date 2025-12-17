@@ -1,5 +1,5 @@
 # befunjit
- jit compiler for meme language 
+ jit compiler for meme language  
  **NATIVE** btw 😎
 # how work???  
 ## 1. thunk table  
