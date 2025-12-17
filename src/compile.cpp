@@ -79,6 +79,16 @@ void* poc_compiler(const code_pos_t& code_pos) {
     uint64 jump_target = 0;
     bool emitted_jump = false;
 
+    auto call_extern = [&](uint64 addr) {
+        // Preserve stack alignment for external C calls.
+        code_generator.mov(rax, addr);
+        code_generator.mov(r11, rsp);
+        code_generator.and_(r11, 8);
+        code_generator.sub(rsp, r11);
+        code_generator.call(rax);
+        code_generator.add(rsp, r11);
+    };
+
     while (true) {
         // Track that this compiled function depends on the current cell.
         G::code_manager.AddDependency(cur_pos.to_coord(), start_pos);
@@ -147,44 +157,37 @@ void* poc_compiler(const code_pos_t& code_pos) {
             code_generator.push(rcx);
             break;
         case '&':
-            code_generator.mov(rax, G::p_extern_getint);
-            code_generator.call(rax);
+            call_extern(G::p_extern_getint);
             code_generator.push(rax);
             break;
         case '~':
-            code_generator.mov(rax, G::p_extern_getchar);
-            code_generator.call(rax);
+            call_extern(G::p_extern_getchar);
             code_generator.push(rax);
             break;
         case '.':
             code_generator.pop(rdi);
-            code_generator.mov(rax, G::p_extern_printint);
-            code_generator.call(rax);
+            call_extern(G::p_extern_printint);
             break;
         case ',':
             code_generator.pop(rdi);
-            code_generator.mov(rax, G::p_extern_printchar);
-            code_generator.call(rax);
+            call_extern(G::p_extern_printchar);
             break;
         case '@':
-            code_generator.mov(rax, G::p_extern_exit);
-            code_generator.call(rax);
+            call_extern(G::p_extern_exit);
             code_generator.ud2(); // should not return
             emitted_jump = true;
             break;
         case 'g':
             code_generator.pop(rdi); // y
             code_generator.pop(rsi); // x
-            code_generator.mov(rax, G::p_extern_read_val);
-            code_generator.call(rax);
+            call_extern(G::p_extern_read_val);
             code_generator.push(rax);
             break;
         case 'p':
             code_generator.pop(rdx); // v
             code_generator.pop(rdi); // y
             code_generator.pop(rsi); // x
-            code_generator.mov(rax, G::p_extern_write_val);
-            code_generator.call(rax);
+            call_extern(G::p_extern_write_val);
             break;
         case '>':
             jump_target = G::code_manager.GetThunkAddress(advance_pos(cur_pos, Dir::RIGHT));
@@ -315,4 +318,3 @@ void* poc_compiler(const code_pos_t& code_pos) {
 void* __attribute_noinline__ compile (const code_pos_t& code_pos) {
     return poc_compiler(code_pos);
 }
-
