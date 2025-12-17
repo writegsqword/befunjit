@@ -1,6 +1,6 @@
 # befunjit
- jit compiler for meme language
-NATIVE btw 
+ jit compiler for meme language 
+ **NATIVE** btw 😎
 # how work???  
 ## 1. thunk table  
 this is a jump table every entry is a snippet of code:
