@@ -18,11 +18,11 @@ static_assert(sizeof(uint32) == 4);
 
 namespace Dir {
     enum DirType { 
-        INVALID,
         UP,
         DOWN,
         LEFT,
-        RIGHT
+        RIGHT,
+        INVALID,
     };
     static const DirType All[] = { UP, DOWN, LEFT, RIGHT };
 }

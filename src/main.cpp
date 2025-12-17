@@ -76,7 +76,8 @@ int main(int argc, char** argv) {
     }
     compiler_init();
     print_mem();
-    CodeManager* mgr = new CodeManager();
+    //CodeManager* mgr = new CodeManager();
+    CodeManager* mgr = &G::code_manager;
     std::cerr << "extern printint " << std::hex << G::p_extern_printint;
     std::cerr << "base@"  << std::hex << mgr->GetThunkBase() << std::endl;
     std::cerr << "resolve callback@" << std::hex << &mgr->st->f_dispatch << std::endl;

@@ -35,7 +35,7 @@ constexpr inline code_pos_t idx_to_pos(uint64 idx, Dir::DirType d) {
 // }
 inline code_pos_t offset_to_codepos(uint64 offset) {
 
-    assert(offset <= STUB_TABLE_SIZE);
+    assert(offset < STUB_TABLE_SIZE);
     uint64 table_offset = offset / THUNK_ENTRY_SIZE;
     Dir::DirType row_idx = (Dir::DirType)(table_offset / N_ROWS_COLS);
     
@@ -46,7 +46,8 @@ inline code_pos_t offset_to_codepos(uint64 offset) {
 }
 
 inline uint64 codepos_to_offset(const code_pos_t& code_pos) {
-    return (code_pos.dir * N_ROWS_COLS + code_pos.x * N_COLS + code_pos.y) * THUNK_ENTRY_SIZE;
+    // Flatten as [dir][x][y] to mirror offset_to_codepos/idx_to_pos
+    return (code_pos.dir * N_ROWS_COLS + code_pos.x * N_ROWS + code_pos.y) * THUNK_ENTRY_SIZE;
 }
 
 

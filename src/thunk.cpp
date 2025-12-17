@@ -31,6 +31,7 @@ CodeManager::~CodeManager() {
 code_pos_t CodeManager::GetCodePos(uint64 address) const {
     uint64 base = this->GetThunkBase();
     uint64 offset = address - base;
+    std::cerr << "calculated offset " << offset << " base" << base << std::endl; 
     return offset_to_codepos(offset);
 }
 
@@ -43,7 +44,6 @@ void CodeManager::AddDependency(coord_t coords, code_pos_t pos) {
 
 void CodeManager::ResolvePos(uint64 jump_dst, const code_pos_t& pos) {
     st->entries[codepos_to_offset(pos) / sizeof(thunk_entry)].resolve(jump_dst);
-     
 }
 
 //honestly it doesnt even matter if im passing by const ref since its a 64 bit value
@@ -83,6 +83,7 @@ thunk_entry& CodeManager::GetThunkEntry(const code_pos_t& code_pos)  {
     
 uint64 CodeManager::GetThunkAddress(const code_pos_t& code_pos) {
     //return GetThunkBase() + codepos_to_offset(code_pos);
+    assert(GetThunkBase() + codepos_to_offset(code_pos) == (uint64)(&CodeManager::GetThunkEntry(code_pos)));
     return (uint64)(&CodeManager::GetThunkEntry(code_pos));
 }
 
