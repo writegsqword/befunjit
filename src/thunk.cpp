@@ -37,6 +37,9 @@ code_pos_t CodeManager::GetCodePos(uint64 address) const {
 
 // dir is ignored here
 void CodeManager::AddDependency(coord_t coords, code_pos_t pos) {
+    std::cerr << "cord:" << coords.x << " " << coords.y;
+    std::cerr << " pos " << pos.dir << " " << pos.x << "  " <<  pos.y << std::endl;
+    std::cerr << " uset: " << &(_code_depends[coords.x][coords.y]) << std::endl;
     _code_depends[coords.x][coords.y].insert(pos);
     _code_depends_reverse[pos.dir][pos.x][pos.y].push_back(coords);
 }

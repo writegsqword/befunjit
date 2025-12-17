@@ -152,7 +152,7 @@ struct code_pos_t {
     }
 
 
-        code_pos_t operator+(const code_pos_t &other) const
+    code_pos_t operator+(const code_pos_t &other) const
     {
         return Add(other);
     }

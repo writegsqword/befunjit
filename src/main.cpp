@@ -1,6 +1,7 @@
 #include "compile.h"
 #include "typedefs.h"
 #include "utils.h"
+#include <cassert>
 #include <cstdlib>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -22,6 +23,7 @@ struct __attribute__((packed)) tramp_asm  {
 
 };
 
+void bp() {};
 tramp_asm* tasm;
 
 void trampoline_code() {
@@ -60,20 +62,28 @@ int main(int argc, char** argv) {
     //     ">5-3*v"
     // };
     std::string line;
-
     while (std::getline(fin, line))
     {
         ins.push_back(line);
     }
 
-    assert(ins.size() <= 25);
+    if(ins.size() > N_ROWS) {
+        std::cerr << "too many lines! exiting..." << std::endl;
+        return -1;
+    }
+    bp();
     for(int i = 0; i < ins.size(); i++) {
 
         std::string& s = ins[i];
+        if(s.size() > N_COLS) {
+            std::cerr << "line too long! exiting..." << std::endl;
+            return -1;
+        }
         for(int j = 0; j < s.size(); j++ ) {
             G::static_memory[j][i] = s[j];
         };
     }
+    bp();
     compiler_init();
     print_mem();
     //CodeManager* mgr = new CodeManager();
