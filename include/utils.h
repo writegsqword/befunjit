@@ -55,20 +55,31 @@ inline uint64 codepos_to_offset(const code_pos_t& code_pos) {
 
 
 inline code_pos_t codepos_from_dir(Dir::DirType d) {
+    code_pos_t r;
+    r.dir = d;
+    // A bit of a hack here, dont use constructor here so clamping isnt applied
     switch (d)
     {
     case Dir::UP:
-        return {0, -1, d};
+        r.x = 0;
+        r.y = -1;
+        break;
     case Dir::DOWN:
-        return {0, 1, d};
+        r.x = 0;
+        r.y = 1;
+        break;
     case Dir::LEFT:
-        return {-1, 0, d};
+        r.x = -1;
+        r.y = 0;
+        break;
     case Dir::RIGHT:
-        return {1, 0, d};
-    
+        r.x = 1;
+        r.y = 0;
+        break;
     default:
         throw std::runtime_error("Invalid direction");    
     }
+    return r;
 }
 
 inline Dir::DirType dir_from_ascii(char c) {

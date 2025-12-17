@@ -69,6 +69,7 @@ void* poc_compiler(const code_pos_t& code_pos) {
 
     //walk until control-flow changes or we wrap back to the start
     code_pos_t start_pos = code_pos;
+    coord_t start_coord = start_pos.to_coord();
     code_pos_t cur_pos = code_pos;
 
     auto advance_pos = [&](code_pos_t pos, Dir::DirType dir, int steps = 1) {
@@ -80,13 +81,12 @@ void* poc_compiler(const code_pos_t& code_pos) {
     bool emitted_jump = false;
 
     auto call_extern = [&](uint64 addr) {
-        // Preserve stack alignment for external C calls.
         code_generator.mov(rax, addr);
-        code_generator.mov(r11, rsp);
-        code_generator.and_(r11, 8);
-        code_generator.sub(rsp, r11);
+        code_generator.mov(rbx, rsp);
+        code_generator.and_(rbx, 8);
+        code_generator.sub(rsp, rbx);
         code_generator.call(rax);
-        code_generator.add(rsp, r11);
+        code_generator.add(rsp, rbx);
     };
 
     while (true) {
@@ -95,7 +95,7 @@ void* poc_compiler(const code_pos_t& code_pos) {
 
         const unsigned char instr = G::static_memory[cur_pos.x][cur_pos.y];
         switch (instr) {
-        case '+':
+        case '+':// Preserve stack alignment for external C calls.
             code_generator.pop(rax);
             code_generator.pop(rbx);
             code_generator.add(rax, rbx);
@@ -293,8 +293,8 @@ void* poc_compiler(const code_pos_t& code_pos) {
 
         cur_pos = advance_pos(cur_pos, cur_pos.dir);
 
-        // If we wrapped all the way around, emit a jump back to the start thunk.
-        if (cur_pos == start_pos) {
+        // If we wrapped all the way around to the start coordinate, emit a jump back to the start thunk.
+        if (cur_pos.to_coord() == start_coord) {
             jump_target = G::code_manager.GetThunkAddress(start_pos);
             break;
         }
