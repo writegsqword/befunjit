@@ -50,7 +50,10 @@ void CodeManager::ResolvePos(uint64 jump_dst, const code_pos_t& pos) {
 void CodeManager::InvalidateCoords(coord_t coords) {
     //forward map: x, y -> code_pos
     auto& depends = _code_depends[coords.x][coords.y];
+    std::cerr << " invalidating coords " << "x: " << coords.x << " y: " << coords.y << std::endl;
+    __DebugDumpDependencies();
     for(code_pos_t depend : depends){
+    
         // The problem: code_pos depends on multiple coords
         // Solution: keep track of a reverse map(code_pos to coords)
         // Once a code_pos is invalidated, remove all references of the code_pos out of all depends
@@ -87,3 +90,31 @@ uint64 CodeManager::GetThunkAddress(const code_pos_t& code_pos) {
     return (uint64)(&CodeManager::GetThunkEntry(code_pos));
 }
 
+void CodeManager::__DebugDumpDependencies() const {
+    std::cerr << "=== Forward dependencies (coord -> code_pos) ===\n";
+    for (size_t x = 0; x < N_COLS; ++x) {
+        for (size_t y = 0; y < N_ROWS; ++y) {
+            const auto& set = _code_depends[x][y];
+            if (set.empty()) continue;
+            std::cerr << "coord(" << x << "," << y << "): ";
+            for (const auto& cp : set) {
+                std::cerr << "(" << cp.x << "," << cp.y << "," << cp.dir << ") ";
+            }
+            std::cerr << "\n";
+        }
+    }
+    std::cerr << "=== Reverse dependencies (code_pos -> coord list) ===\n";
+    for (size_t d = 0; d < N_DIRS; ++d) {
+        for (size_t x = 0; x < N_COLS; ++x) {
+            for (size_t y = 0; y < N_ROWS; ++y) {
+                const auto& vec = _code_depends_reverse[d][x][y];
+                if (vec.empty()) continue;
+                std::cerr << "code_pos(" << x << "," << y << "," << d << "): ";
+                for (const auto& c : vec) {
+                    std::cerr << "(" << c.x << "," << c.y << "," << c.dir << ") ";
+                }
+                std::cerr << "\n";
+            }
+        }
+    }
+}

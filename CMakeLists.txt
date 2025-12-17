@@ -10,10 +10,11 @@ project(befunjit)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/xbyak/xbyak")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/zydis")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/tlsf")
 
 
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
 
-add_executable(befunjit tlsf/tlsf.c ${SOURCES})
+add_executable(befunjit tlsf/tlsf.c zydis/Zydis.c ${SOURCES})

@@ -121,6 +121,8 @@ public:
     // invalidate all code associated with x, y
     // I will come up with better names when I come up with better names
     void InvalidateCoords(coord_t coords);
+
+    void __DebugDumpDependencies() const;
 };
 
 constexpr uint64 STUB_TABLE_SIZE = sizeof(stub_table::entries), THUNK_ENTRY_SIZE = sizeof(thunk_entry);

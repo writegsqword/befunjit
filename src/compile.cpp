@@ -6,9 +6,12 @@
 #include "vec.h"
 #include "xbyak.h"
 #include "tlsf.h"
+#include "Zydis.h"
 #include <cassert>
 #include <cstddef>
 #include <cstring>
+#include <iostream>
+
 
 #define DEF_INSTRUCTION(ins_name) instructions::_##ins_name i_##ins_name = instructions::_##ins_name();
 #define WRITE_INSTRUCTION(ins_name) c = (byte*) &i_##ins_name; size = sizeof(i_##ins_name);
@@ -35,6 +38,30 @@ uint64 __attribute_noinline__ resolve_thunk(uint64 address) {
     return address;
 }
 
+static void __DebugDumpCode(void* code, size_t len) {
+    // The runtime address (instruction pointer) was chosen arbitrarily here in order to better 
+    // visualize relative addressing. In your actual program, set this to e.g. the memory address 
+    // that the code being disassembled was read from. 
+    ZyanU64 runtime_address = (uint64)code; 
+    unsigned char* data = (unsigned char*)code;
+    
+    // Loop over the instructions in our buffer. 
+    ZyanUSize offset = 0; 
+    ZydisDisassembledInstruction instruction; 
+    while (ZYAN_SUCCESS(ZydisDisassembleIntel( 
+        /* machine_mode:    */ ZYDIS_MACHINE_MODE_LONG_64, 
+        /* runtime_address: */ runtime_address, 
+        /* buffer:          */ data + offset, 
+        /* length:          */ len - offset, 
+        /* instruction:     */ &instruction 
+    ))) { 
+        std::cerr << runtime_address << ": " << instruction.text << std::endl;
+        offset += instruction.info.length; 
+        runtime_address += instruction.info.length; 
+    } 
+    //The assert will fail when disassembling jumptable
+    //assert(offset == len);
+}
 
 
 struct _CodeGen : Xbyak::CodeGenerator {
@@ -88,12 +115,14 @@ void* poc_compiler(const code_pos_t& code_pos) {
         code_generator.call(rax);
         code_generator.add(rsp, rbx);
     };
-
+    std::cerr << "start of compilation of thunk: dir: " << code_pos.dir << " x: " << code_pos.x << " y: " << code_pos.y << std::endl;
     while (true) {
         // Track that this compiled function depends on the current cell.
         G::code_manager.AddDependency(cur_pos.to_coord(), start_pos);
+        
 
         const unsigned char instr = G::static_memory[cur_pos.x][cur_pos.y];
+        std::cerr << "compiling command char: " << instr << std::endl;
         switch (instr) {
         case '+':// Preserve stack alignment for external C calls.
             code_generator.pop(rax);
@@ -184,9 +213,9 @@ void* poc_compiler(const code_pos_t& code_pos) {
             code_generator.push(rax);
             break;
         case 'p':
-            code_generator.pop(rdx); // v
             code_generator.pop(rdi); // y
             code_generator.pop(rsi); // x
+            code_generator.pop(rdx); // v
             call_extern(G::p_extern_write_val);
             break;
         case '>':
@@ -244,8 +273,7 @@ void* poc_compiler(const code_pos_t& code_pos) {
             uint64 addr_right = G::code_manager.GetThunkAddress(advance_pos(cur_pos, Dir::RIGHT));
 
             Xbyak::Label jpt;
-            code_generator.mov(rax, G::p_extern_rand);
-            code_generator.call(rax);
+            call_extern(G::p_extern_rand);
             code_generator.and_(rax, 0x3);
             code_generator.lea(rbx, ptr[rip + jpt]);
             code_generator.mov(rax, ptr[rbx + rax * 8]);
@@ -293,7 +321,7 @@ void* poc_compiler(const code_pos_t& code_pos) {
 
         cur_pos = advance_pos(cur_pos, cur_pos.dir);
 
-        // If we wrapped all the way around to the start coordinate, emit a jump back to the start thunk.
+        // If we wrapped all the way around, emit a jump back to the start thunk.
         if (cur_pos.to_coord() == start_coord) {
             jump_target = G::code_manager.GetThunkAddress(start_pos);
             break;
@@ -306,11 +334,14 @@ void* poc_compiler(const code_pos_t& code_pos) {
         code_generator.jmp(rax);
     }
     
-    
-    void* code_mem = _rwx_malloc(code_generator.getSize());
+    size_t code_size = code_generator.getSize();
+    void* code_mem = _rwx_malloc(code_size);
     assert(code_mem != nullptr);
     std::cerr << "tmp buf " << std::hex << (uint64)code_generator.tmp_buf << std::endl;
-    std::memcpy(code_mem, code_generator.tmp_buf, code_generator.getSize());
+    std::cerr << "end of compilation " << std::endl;
+    std::memcpy(code_mem, code_generator.tmp_buf, code_size);
+    __DebugDumpCode(code_mem, code_size);
+
     return code_mem;
 
 }
