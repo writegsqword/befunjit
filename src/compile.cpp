@@ -174,7 +174,7 @@ void* poc_compiler(const code_pos_t& code_pos) {
             code_generator.pop(rax);
             code_generator.xor_(rcx, rcx);
             code_generator.cmp(rax, 0);
-            code_generator.setne(cl);
+            code_generator.sete(cl);
             code_generator.push(rcx);
             break;
         case '`':
