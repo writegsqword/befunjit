@@ -39,15 +39,48 @@ struct _CodeGen : Xbyak::CodeGenerator {
 static _CodeGen code_generator;
 
 
+tlsf_t tlsf_alloc;
+// probably need to move this inside codemanager since we need to free it there
+//TODO: handle oom
+static void* _rwx_malloc(size_t size) {
+    return tlsf_malloc(tlsf_alloc, size);
+}
+
+static void _rwx_free(void* ptr) {
+    tlsf_free(tlsf_alloc, ptr);
+}
+
+constexpr size_t RWX_SIZE = 0x4000;
+void compiler_init() {
+    void* mem = alloc_rwx(RWX_SIZE);
+    tlsf_alloc = tlsf_create_with_pool(mem, RWX_SIZE);
+
+}
 
 // literally just translates the one instruction and jumps to the next
 void* poc_compiler(const code_pos_t& code_pos) {
+    using namespace Xbyak::util;
     //reset temporary code generator
     code_generator.reset();
+
     //allocate rwx memory 
+    
     //write one instruction that corresponds to the real operation(operate on the real stack)
     // jump to the next entry in the thunk table
     // mark x, y, as a dependency for this code
+    G::code_manager.AddDependency(code_pos.to_coord(), code_pos);
+    code_pos_t dest = code_pos;
+
+    //TODO: do stuff here
+
+
+
+    if (dest == code_pos) {
+        dest += codepos_from_dir(code_pos.dir);
+    }
+    code_generator.mov(rax, G::code_manager.GetThunkAddress(code_pos));
+    code_generator.jmp(rax);
+    _rwx_malloc(code_generator.getSize());
 
 }
 

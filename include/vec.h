@@ -6,7 +6,7 @@
 
 #include "typedefs.h"
 template <typename T>
-inline T loop_clamp(T v, T min, T max) {
+constexpr inline T loop_clamp(T v, T min, T max) {
     if(v < min)
         return v + max;
     if(v >= max)
@@ -14,13 +14,106 @@ inline T loop_clamp(T v, T min, T max) {
     return v;
 }
 
+
+
+struct coord_t {
+    
+    int x: 30 = 0;
+    int y: 30 = 0;
+    Dir::DirType dir : 4 = Dir::INVALID;
+    constexpr coord_t() {};
+    constexpr coord_t(int x, int y)
+    {
+        this->x = x;
+        this->y = y;        
+        _LoopClamp();
+    }
+
+    constexpr void _LoopClamp() {
+        this->x = loop_clamp(this->x, 0, I_N_COLS);
+        this->y = loop_clamp(this->y, 0, I_N_ROWS);
+    }
+    // Note: dir behavior is pretty haphazard, make sure to manually assign it before using it in relavent functions
+    coord_t Add(const coord_t&other) const
+    {
+        return coord_t(x + other.x, y + other.y);
+    }
+    coord_t Sub(const coord_t &other) const
+    {
+        return coord_t(x - other.x, y - other.y);
+    }
+    void AddFrom(const coord_t &other)
+    {
+        x += other.x;
+        y += other.y;
+        _LoopClamp();
+    }
+
+    void SubFrom(const coord_t &other)
+    {
+        
+        x -= other.x;
+        y -= other.y;
+        _LoopClamp();
+    }
+
+
+    coord_t operator+(const coord_t &other) const
+    {
+        return Add(other);
+    }
+
+    coord_t operator-(const coord_t &other) const
+    {
+        return Sub(other);
+    }
+
+        void operator+=(const coord_t &other)
+    {
+        AddFrom(other);
+    }
+
+    void operator-=(const coord_t &other)
+    {
+        SubFrom(other);
+    }
+
+    coord_t GetNegated() const
+    {
+        return coord_t(-x, -y);
+    }
+
+
+    coord_t operator-() const
+    {
+        return GetNegated();
+    }
+
+    coord_t Scale(int v) const
+    {
+        return coord_t(x * v, y * v);
+    }
+
+    coord_t operator*(int v) const
+    {
+        return Scale(v);
+    }
+
+    bool operator==(const coord_t& other) const {
+        return this->x == other.x && this->y == other.y;
+    }
+};
+
+
+
+// the 2 structs are essentially the same but its very important that the 2 types are not confused
 struct code_pos_t {
     
     int x: 30 = 0;
     int y: 30 = 0;
     Dir::DirType dir : 4 = Dir::UP;
     code_pos_t() {};
-    code_pos_t(int x, int y, Dir::DirType dir)
+    constexpr code_pos_t(int x, int y, Dir::DirType dir)
     {
         this->x = x;
         this->y = y;
@@ -28,7 +121,7 @@ struct code_pos_t {
         _LoopClamp();
     }
 
-    void _LoopClamp() {
+    constexpr void _LoopClamp() {
         this->x = loop_clamp(this->x, 0, I_N_COLS);
         this->y = loop_clamp(this->y, 0, I_N_ROWS);
     }
@@ -103,7 +196,11 @@ struct code_pos_t {
     bool operator==(const code_pos_t& other) const {
         return this->x == other.x && this->y == other.y && this->dir == other.dir;
     }
+    coord_t to_coord() const {
+        return coord_t(x, y);
+    }
 };
+
 
 namespace std {
     template <>

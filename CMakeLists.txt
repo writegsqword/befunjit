@@ -12,8 +12,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/xbyak/xbyak")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/tlsf")
 
-file(GLOB_RECURSE SOURCES tlsf/tlsf.c)
+
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
 
-add_executable(befunjit ${SOURCES})
+add_executable(befunjit tlsf/tlsf.c ${SOURCES})

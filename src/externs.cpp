@@ -1,7 +1,3 @@
-
-
-
-
 #include "externs.h"
 #include "globals.h"
 #include <iostream>
@@ -58,8 +54,6 @@ void extern_write_val(uint64 y, uint64 x, uint64 v) {
     if(x >= N_COLS || y >= N_ROWS)
         return;
     G::static_memory[x][y] = v;
-    
-    //im sorry ok
-    G::code_manager.InvalidatePos(code_pos_t(x, y, Dir::INVALID));
+    G::code_manager.InvalidateCoords(coord_t(x, y));
 
 }

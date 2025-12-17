@@ -23,7 +23,7 @@ inline void* alloc_rwx(size_t size) {
 
 
 
-inline code_pos_t idx_to_pos(uint64 idx, Dir::DirType d) {
+constexpr inline code_pos_t idx_to_pos(uint64 idx, Dir::DirType d) {
     return code_pos_t(idx / N_ROWS, idx % N_ROWS, d);
 }
 // inline void assert_pos(code_pos_t p) {
@@ -53,7 +53,7 @@ inline uint64 codepos_to_offset(const code_pos_t& code_pos) {
 
 
 
-inline code_pos_t vec_from_dir(Dir::DirType d) {
+inline code_pos_t codepos_from_dir(Dir::DirType d) {
     switch (d)
     {
     case Dir::UP:

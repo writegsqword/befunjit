@@ -1,3 +1,4 @@
+#include "compile.h"
 #include "typedefs.h"
 #include "utils.h"
 #include <cstdlib>
@@ -73,16 +74,16 @@ int main(int argc, char** argv) {
             G::static_memory[j][i] = s[j];
         };
     }
-
+    compiler_init();
     print_mem();
     CodeManager* mgr = new CodeManager();
     std::cerr << "extern printint " << std::hex << G::p_extern_printint;
-    std::cerr << "base@"  << std::hex << mgr->GetBase() << std::endl;
-    std::cerr << "resolve callback@" << std::hex << &mgr->st.get()->f_dispatch << std::endl;
+    std::cerr << "base@"  << std::hex << mgr->GetThunkBase() << std::endl;
+    std::cerr << "resolve callback@" << std::hex << &mgr->st->f_dispatch << std::endl;
     tasm = (tramp_asm*)alloc_rwx(sizeof(tramp_asm));
     *tasm = tramp_asm();
     std::cerr << "tasm@ " << tasm << std::endl;
-    tasm->jt.addr = mgr->GetAddress(code_pos_t(0, 0, Dir::RIGHT));
+    tasm->jt.addr = mgr->GetThunkAddress(code_pos_t(0, 0, Dir::RIGHT));
     trampoline_code();
 
     
