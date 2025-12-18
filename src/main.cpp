@@ -71,7 +71,6 @@ int main(int argc, char** argv) {
         std::cerr << "too many lines! exiting..." << std::endl;
         return -1;
     }
-    bp();
     for(int i = 0; i < ins.size(); i++) {
 
         std::string& s = ins[i];
@@ -83,7 +82,6 @@ int main(int argc, char** argv) {
             G::static_memory[j][i] = s[j];
         };
     }
-    bp();
     compiler_init();
     print_mem();
     //CodeManager* mgr = new CodeManager();
