@@ -25,3 +25,10 @@ the compiler, where it can then be recompiled if needed
 
 # todo 
 underflow protection
+
+
+# credits:
+[assembler for code generation](https://github.com/herumi/xbyak)
+[rwx memory allocator](https://github.com/mattconte/tlsf)
+[disassembler for viewing code](https://github.com/zyantific/zydis)
+[spec ref and samples](https://esolangs.org/wiki/Befunge)
